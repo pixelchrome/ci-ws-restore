@@ -1,0 +1,7 @@
+ontap_hostname: "10.0.70.90"
+ontap_username: "admin"
+ontap_password: "<password>"
+ontap_vserver: "<svm-name>"
+snapshot_name: "clean_snapshot"
+ontap_volume: "<flexvol-name>"
+path_to_remove: "/<flexvol-name>"

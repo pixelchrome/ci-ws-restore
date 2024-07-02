@@ -5,6 +5,7 @@
 ### Install Ansible
 
 `sudo apt install ansible`
+`ansible-galaxy collection install -r requirements.yml`
 
 ### Install python lib `netapp-lib`
 
