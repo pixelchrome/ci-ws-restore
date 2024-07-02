@@ -1,0 +1,51 @@
+---
+- name: Extract filenames and paths from CSV and recover from snapshot
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+  - vars/var_file.yml
+  vars:
+    ontap_hostname: "10.0.70.90"
+    ontap_username: "admin"
+    ontap_password: "netapp123"
+    ontap_vserver: "wrk-svm1"
+    snapshot_name: "clean_snapshot.2"
+    ontap_volume: "wrkvol1"
+    path_to_remove: "/wrkvol1"
+
+  tasks:
+    - name: Read CSV file
+      community.general.read_csv:
+        path: ./files.csv
+      register: csv_data
+
+    - name: Display CSV data list
+      debug:
+        msg: "{{ csv_data.list }}"
+
+    - name: Display extracted file paths
+      debug:
+        msg: "Filepath: {{ item.Path }}"
+      loop: "{{ csv_data.list }}"
+
+    - name: Display extracted and modified file paths
+      debug:
+        msg: "Original Filepath: {{ item.Path }}, Modified Filepath: {{ item.Path | replace(path_to_remove, '') }}"
+      loop: "{{ csv_data.list }}"
+
+    - name: Restore files from snapshot
+      netapp.ontap.na_ontap_command:
+        hostname: "{{ ontap_hostname }}"
+        username: "{{ ontap_username }}"
+        password: "{{ ontap_password }}"
+        vserver: "{{ ontap_vserver }}"
+        https: true
+        validate_certs: false
+        command:
+          volume snapshot restore-file -vserver {{ ontap_vserver }}
+          -volume {{ ontap_volume }}
+          -snapshot {{ snapshot_name }}
+          -path {{ item.Path | replace(path_to_remove, '') }}
+          -restore-path {{ item.Path | replace(path_to_remove, '') }}
+      loop: "{{ csv_data.list }}"
+      when: item.Path is defined
